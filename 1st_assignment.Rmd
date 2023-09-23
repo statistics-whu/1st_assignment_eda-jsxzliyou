@@ -1,7 +1,7 @@
 ---
 title: "第一次作业你的报告题目"
 CJKmainfont: Songti SC
-author: "your name"
+author: "李游游"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
