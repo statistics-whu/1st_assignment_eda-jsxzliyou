@@ -1,22 +1,14 @@
 ---
-title: "第一次作业你的报告题目"
+title: "武汉市二手房浅析"
 CJKmainfont: Songti SC
 author: "李游游"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
     latex_engine: xelatex
-  word_document:
-    toc: yes
-  html_document:
-    code_folding: show
-    fig_caption: yes
-    fig_width: 10
-    highlight: tango
-    number_sections: yes
-    theme: cosmo
-    toc: yes
+    pandoc_args: ["--pdf-engine=xelatex", "--variable", "mainfont:Songti SC"]
 ---
+
 ```{r setup, include = FALSE,echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE,error = FALSE, warning = FALSE, message = FALSE,
                       out.width = "100%", split = FALSE, fig.align = "center")
@@ -28,38 +20,41 @@ library(scales)
 library(plotly)
 library(patchwork)
 library(ggrepel)
+library(showtext)
+library(sampling)
 ```
 
 # 你的主要发现
 
-1. 发现1
+1.  靠近地铁的房屋数量与远离地铁的房屋数量几乎一致，但靠近地铁房屋均价比远离地铁大约高3000元，中位数大约高2700元
 
-1. 发现2
-  
-1. 发现3
-    
+2.  白沙洲二手房市场相较于其他区域比较活跃
+
+3.  有95%的信心武汉市二手房均价在14922.13元至15374.85元之间
 
 # 数据介绍
 
 本报告**链家**数据获取方式如下：
-    
-报告人在2023年9月12日获取了[链家武汉二手房网站](https://wh.lianjia.com/ershoufang/)数据。
-    
-- 链家二手房网站默认显示100页，每页30套房产，因此本数据包括3000套房产信息；
-    
-- 数据包括了页面可见部分的文本信息，具体字段及说明见作业说明。
 
- **说明：**数据仅用于教学；由于不清楚链家数据的展示规则，因此数据可能并不是武汉二手房市场的随机抽样，结论很可能有很大的偏差，甚至可能是错误的。
-    
+报告人在2023年9月12日获取了[链家武汉二手房网站](https://wh.lianjia.com/ershoufang/)数据。
+
+-   链家二手房网站默认显示100页，每页30套房产，因此本数据包括3000套房产信息；
+
+-   数据包括了页面可见部分的文本信息，具体字段及说明见作业说明。
+
+**说明：**数据仅用于教学；由于不清楚链家数据的展示规则，因此数据可能并不是武汉二手房市场的随机抽样，结论很可能有很大的偏差，甚至可能是错误的。
+
 ```{r}
 # 载入数据和预处理
 
-lj<- read_csv("/Users/jameschen/Documents/02_Teaching/12_quantitative_thinking_R/data/2023-09-12_cleaned.csv")
+lj<- read_csv("data/2023-09-12_cleaned.csv")
+
 # EDA ---------------------------------------------------------------------
 
 ## 如下语句可以解决画图中的中文显示问题，当然你可以用showtext包来解决
-
-theme_set(theme(text = element_text(family="Songti SC",size = 10))) #这里family设置成你系统中的中文字体名。
+showtext_auto(enable = TRUE)
+#font_families()
+#theme_set(theme(text = element_text(family="Songti SC",size = 10))) #这里family设置成你系统中的中文字体名。
 
 # 做一些数据预处理，比如把字符型变成factor。
 
@@ -77,78 +72,146 @@ lj %>%
 ```
 
 各变量的简短信息：
+
 ```{r}
 glimpse(lj)
 ```
 
 各变量的简短统计：
+
 ```{r}
 summary(lj)
 ```
 
 可以看到：
 
-- 直观结论1
+-   房屋单价的 最小值：1771元，最大值为：44656元，均值为：15148元，中位数：14404元
 
-- 直观结论2
+-   房屋总价的 最小值：10.6万元，最大值为：1380万元，均值为：155.9万元，中位数：137万元
 
-- ...
+-   房屋价格（单价、总价）跨度非常之大，例如单价从1771元至44656元
+
+-   随着科技的发展，VR看装修已经非常普及，这对买方、卖房来说都节省很多成本
+
 
 # 探索性分析
 
-## 变量1的数值描述与图形
+## 变量near_subway（是否靠近地铁）对房价的影响
+```{r}
+lj %>% 
+  filter(near_subway %in% c("近地铁", NA)) %>% 
+  select(price_sqm, near_subway) %>% 
+  group_by(near_subway) %>% 
+  summarise(
+    count = n(),
+    mean_sqm = mean(price_sqm),
+    mid_sqm = median(price_sqm))
+```
+
 
 发现：
 
-- 发现1
+-   样本数据近地铁与不近地铁数据几乎持平
 
-- 发现2
+-   靠近地铁房屋均价比远离地铁大约高3000元，中位数大约高2700元
 
-## 变量2的数值描述与图形
+## 变量bedrooms（房间数）的数值描述与图形
+```{r}
+lj %>% 
+  ggplot(aes(bedrooms)) +
+  geom_bar()
+```
 
-发现：
-
-- 发现1
-
-- 发现2
-
-## 变量...的数值描述与图形
 
 发现：
 
-- 发现1
+-   两室、三室还是房型的主流
 
-- 发现2
+-   相较于两室，三室数量还是高出不少，更符合现代人的需求
 
-## 探索问题1
-
-发现：
-
-- 发现1
-
-- 发现2
-
-## 探索问题2
-
-发现：
-
-- 发现1
-
-- 发现2
-
-## 探索问题3
+## 变量property_region（区域）的数值描述与图形
+```{r}
+top_region <- lj %>% group_by(property_region) %>% 
+  summarise(count = n()) %>%
+  top_n(10, count)
+top_region %>% ggplot(aes(x = property_region, y = count, fill = property_region)) +
+  geom_bar(stat = 'identity', show.legend = F) 
+```
 
 发现：
 
-- 发现1
+-   相较于市中心，三环周边二手房市更为活跃
 
-- 发现2
+-   白沙洲整个区块算是三环内比较新且比较大的居民区，房市非常活跃
 
----
+-   光谷东为东湖高新发展重中之重，房市也非常活跃
+
+## 探索问题1 数量前十区域房价分布
+```{r}
+inner_join(lj, top_region, by = "property_region") %>% 
+  ggplot(aes(price_sqm, color = property_region)) + 
+  geom_boxplot() + 
+  coord_flip()
+```
+
+
+发现：
+
+-   光谷东作为东湖高新发展新动力，价格活动范围更大，为新发展局域房屋较新，房价也相对较高
+
+-   盘龙城为三环外靠近机场方向，虽然数量可观，但房价整体偏低且价格更为集中
+
+-   青山范围较广，覆盖老城、火车站及部分长江沿岸区域，价格范围也广，但低价位房子更多
+
+## 探索问题2 房屋面积市场占比
+```{r}
+lj %>% filter(building_area < 300) %>% 
+  ggplot(aes(building_area)) +
+  geom_histogram(width = 5)
+```
+
+发现：
+
+-   建筑面积在100平米左右数量居多，居民对小三室的市场需求
+
+
+## 探索问题3 房价与面积的趋势
+
+*去掉数据集中300平米以上的数据*
+
+```{r}
+filter(lj, building_area <= 300) %>% 
+  ggplot(aes(x = building_area, y = price_ttl)) +
+  geom_point(aes(color = near_subway), show.legend = F) +
+  geom_smooth()
+```
+
+发现：
+
+-   房价与面积称正相关性
+
+-   同一个面积靠近地铁房价会更高一些
+
+
+## 探索问题4 整体房价预估
+```{r}
+lj %>% 
+  ggplot(aes(price_sqm)) +
+  geom_histogram() +
+  geom_vline(xintercept = mean(lj$price_sqm), color = "red", linetype = "dashed", size = 1)
+
+t.test(lj$price_sqm)
+```
+
+发现：
+
+-   房屋单价整体分布符合正态分布
+
+-   通过构建置信区间，有95%的信心武汉市二手房均价在14922.13元至15374.85元之间
+
+------------------------------------------------------------------------
 
 # 发现总结
 
-用1-3段话总结你的发现。
-
-
-
+<p>样本整体还算比较均匀，比较重要的一些地区都有数据出现且极少出现无效数据，根据简要的分析结果来看样本数据可以大致体现武汉总体二手房价的情况。</p>
+<p>本分析报告还是比较浮于表面，没有更深层次的分析，比如同一地区不同因素对房价的影响，也没有做回归、聚类等相关分析。另外如果有时间因素可使报告更加丰富，目前也缺失房价随着时间变化的趋势。</p>
