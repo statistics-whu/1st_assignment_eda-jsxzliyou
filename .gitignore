@@ -50,3 +50,7 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+#TempFIles
+.log
+.DS_Store
