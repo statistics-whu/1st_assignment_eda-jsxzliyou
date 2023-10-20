@@ -180,17 +180,18 @@ lj %>% filter(building_area < 300) %>%
 *去掉数据集中300平米以上的数据*
 
 ```{r}
-filter(lj, building_area <= 300) %>% 
-  ggplot(aes(x = building_area, y = price_ttl)) +
+filter(lj, building_area <= 300, near_subway %in% c("近地铁", NA)) %>% 
+  ggplot(aes(x = building_area, y = price_sqm)) +
   geom_point(aes(color = near_subway), show.legend = F) +
-  geom_smooth()
+  geom_smooth() +
+  facet_wrap(~ near_subway, ncol = 2)
 ```
 
 发现：
 
--   房价与面积称正相关性
+-   通过点位分布可以看到近地铁房屋单价稍微高于非近地铁房屋单价
 
--   同一个面积靠近地铁房价会更高一些
+-   房屋单价与房屋的面积关联性并不大
 
 
 ## 探索问题4 整体房价预估
